@@ -3,7 +3,7 @@
 ###################################################################
 # rcube2pam -  secure async backend for Rouncube password plugin. #
 # This Backend will check new passwords from file and changes     #
-# them immediately.					                                   	  #
+# them immediately.		                               	  #
 # MOTIVATION:                                                     #
 # Rouncube password PAM like drivers design requiers to DISABLE   #
 # SElinux and ENABLE dangerous PHP functions to work.             #
