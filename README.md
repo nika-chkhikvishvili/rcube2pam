@@ -1,7 +1,7 @@
 rcube2pam
 ==============
 
-more secure way to change linux user passwords from rouncube.
+more secure way to change linux user passwords from roundcube.
 
 1. change UNIX user password without disabling selinux and enablig dangerous PHP functions.
 2. async.
