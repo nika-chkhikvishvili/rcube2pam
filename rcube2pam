@@ -1,0 +1,79 @@
+#!/bin/sh
+
+###################################################################
+# rcube2pam -  secure async backend for Rouncube password plugin. #
+# This Backend will check new passwords from file and changes     #
+# them immediately.					                                   	  #
+# MOTIVATION:                                                     #
+# Rouncube password PAM like drivers design requiers to DISABLE   #
+# SElinux and ENABLE dangerous PHP functions to work.             #
+# usage: put this scipt somewhere in your executable path,        #
+# create you LSB Service to start automatcally, or execute        #
+# directly from tty: # rcube2pam &                                #
+# 2014                                                            #
+# By Nick Chkhikvishvili - admin@softgen.ge                       #
+# License: BSD                                                    #
+###################################################################
+
+
+
+#Global 
+pid_file="/var/run/rcube2pam/process.pid"
+log_file="/var/log/roundcubemail/chpasswd.log"
+
+# Wite pid to file
+echo $$ > $pid_file
+
+# MAIN LOOP
+while true;
+
+  do
+
+# search for new files
+new_files=`find /tmp/ -type f -name "*passwd-change-request.txt"`
+
+
+if [ ! -z $new_files  ]; then #if1
+
+    date=`date +"[%d/%b/%Y:%H:%M:%S %z]"`
+    event_id=`uuidgen`
+    echo "Event: $event_id started: $date" >> $log_file 
+    
+    for user_file in $new_files; #for1
+      do 
+
+    # get username 
+    username=`cat $user_file | awk NR==1`
+    newpasswd=`cat $user_file | awk NR==2`
+        # check if we didn't got empty string
+        if [ ! -z $username ] && [ ! -z $newpasswd ]; then #if2
+             
+       # check username 
+        if [ `grep -E '/home.*/sbin/nologin' /etc/passwd | cut -d: -f1 | grep -c $username` -ne 1 ]; then #if2
+            echo "username not found or it is system user" >> $log_file 
+        else
+            echo "Username $username exist, proceedig password change." >> $log_file
+            echo -en $newpasswd | /usr/bin/passwd $username --stdin > /dev/null
+                  if [ $? -eq  0 ]; then
+                      echo "Password succesfully changed." >> $log_file
+                  else 
+                      echo "Error changing password." >> $log_file
+                
+                  fi
+        fi #if3       
+       else 
+           echo -e "username or password was blank.\n  
+                    ***trace***\n
+                    username: $username \n
+                    password: $paqssword" >> $log_file
+       fi #if2
+
+     done #for1
+
+date=`date +"[%d/%b/%Y:%H:%M:%S %z]"`
+echo "Event: $event_id stoped: $date" >> $log_file
+rm -rf $user_file
+
+fi #if1
+ 
+done # while1
