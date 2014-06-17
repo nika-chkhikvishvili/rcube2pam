@@ -1,4 +1,4 @@
-helper-scripts
+rcube2pam
 ==============
 
 helper-scripts
